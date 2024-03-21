@@ -4,6 +4,7 @@ import sys
 
 import requestsSQL
 from admin_panel import AdminPanel
+from user_panel import UserPanel
 
 class MainWindows(QMainWindow):
     def __init__(self):
@@ -14,59 +15,58 @@ class MainWindows(QMainWindow):
     def widgets(self):
         self.login_frame = QFrame(self)
         self.login_frame.setGeometry(0, 0, self.width(), self.height())
-        self.login_frame.setStyleSheet('background-color:rgb(255, 125, 125)')
+        self.login_frame.setStyleSheet('background-color: #2c3e50')
 
-        self.label_username = QLabel('Username:', self.login_frame)
-        self.label_username.setGeometry(self.width() // 2 - 250, self.height() // 2 - 60, 200, 50)
+        text_color = "#ffffff"
+
+        self.label_username = QLabel('Имя пользователя:', self.login_frame)
+        self.label_username.setGeometry(self.width() // 2 - 250, self.height() // 2 - 70, 200, 50)
         self.label_username.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        self.label_username.setStyleSheet(f'color: {text_color};')
 
         self.input_username = QLineEdit(self.login_frame)
-        self.input_username.setGeometry(self.width() // 2 + 10, self.height() // 2 - 50, 200, 30)
+        self.input_username.setGeometry(self.width() // 2 + 10, self.height() // 2 - 60, 200, 30)
+        self.input_username.setStyleSheet('background-color: rgba(100 ,100, 100, 100); border-radius: 5px;')
 
-        self.label_password = QLabel('Password:', self.login_frame)
-        self.label_password.setGeometry(self.width() // 2 - 250, self.height() // 2, 200, 30)
+        self.label_password = QLabel('Пароль:', self.login_frame)
+        self.label_password.setGeometry(self.width() // 2 - 250, self.height() // 2 - 10, 200, 30)
         self.label_password.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        self.label_password.setStyleSheet(f'color: {text_color};')
 
         self.input_password = QLineEdit(self.login_frame)
-        self.input_password.setGeometry(self.width() // 2 + 10, self.height() // 2, 200, 30)
+        self.input_password.setGeometry(self.width() // 2 + 10, self.height() // 2 - 10, 200, 30)
         self.input_password.setEchoMode(QLineEdit.Password)
+        self.input_password.setStyleSheet('background-color: rgba(100 ,100, 100, 100); border-radius: 5px;')
 
-        self.btn_login = QPushButton('Login', self.login_frame)
-        self.btn_login.setGeometry(self.width() // 2 - 100, self.height() // 2 + 50, 90, 30)
+        self.btn_login = QPushButton('Вход', self.login_frame)
+        self.btn_login.setGeometry(self.width() // 2 - 100, self.height() // 2 + 40, 100, 30)
+        self.btn_login.setStyleSheet('background-color: #27ae60; border-radius: 5px; color: #ffffff;')
 
-        self.btn_register = QPushButton('Register', self.login_frame)
-        self.btn_register.setGeometry(self.width() // 2 + 10, self.height() // 2 + 50, 90, 30)
-
-        self.btn_exit = QPushButton('Exit', self.login_frame)
-        self.btn_exit.setGeometry(self.width() // 2 - 100, self.height() // 2 + 100, 90, 30)
+        self.btn_exit = QPushButton('Выход', self.login_frame)
+        self.btn_exit.setGeometry(self.width() // 2 + 10, self.height() // 2 + 40, 100, 30)
+        self.btn_exit.setStyleSheet('background-color: #c0392b; border-radius: 5px; color: #ffffff;')
         self.btn_exit.clicked.connect(self.close)
-        
-        self.btn_register.clicked.connect(self.add_user_inBD)
+
         self.btn_login.clicked.connect(self.read_user_fromDB)
-    
-        
-    def add_user_inBD(self):
-        requestsSQL.create_table_users(self.BD)
-        login = self.input_username.text()
-        password = self.input_password.text()
-        requestsSQL.add_user(conn=self.BD, username=login, password=password)
         
     
     def read_user_fromDB(self):
         read_users = requestsSQL.read_users(self.BD)
-        for id, login, password in read_users:
-            self.loginInApp() if login == self.input_username.text() and password == self.input_password.text() else print()
+        for id, login, password, priv in read_users:
+            if login == self.input_username.text() and password == self.input_password.text():
+                self.loginInApp(login, int(priv))
             
         
-    def loginInApp(self):
+    def loginInApp(self, login, priv):
         self.login_frame.setVisible(False)
         self.showFullScreen()
-        requestsSQL.create_table_tasks(self.BD)
-        AdminPanel(self, self.BD)
-
+        AdminPanel(self, login, self.BD) if priv else UserPanel(self, login, self.BD)
+        
 
     def run(self):
         self.BD = requestsSQL.create_connection('data.db')
+        requestsSQL.create_table_users(self.BD)
+        requestsSQL.create_table_tasks(self.BD)
         self.widgets()
         self.show()
 

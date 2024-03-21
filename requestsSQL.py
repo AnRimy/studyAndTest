@@ -14,7 +14,8 @@ def create_table_users(conn) -> None:
     sql_create_users_table = """CREATE TABLE IF NOT EXISTS users (
                                     id INTEGER PRIMARY KEY,
                                     username TEXT NOT NULL,
-                                    password TEXT NOT NULL
+                                    password TEXT NOT NULL,
+                                    priv TEXT
                                 );"""
     try:
         c = conn.cursor()
@@ -36,11 +37,11 @@ def create_table_tasks(conn) -> None:
         print(e)
         
 
-def add_user(conn, username, password):
-    sql = ''' INSERT INTO users(username,password)
-              VALUES(?,?) '''
+def add_user(conn, username, password, priv):
+    sql = ''' INSERT INTO users(username,password,priv)
+              VALUES(?,?,?) '''
     cur = conn.cursor()
-    cur.execute(sql, (username, password))
+    cur.execute(sql, (username, password, priv))
     conn.commit()
     return cur.lastrowid
 
