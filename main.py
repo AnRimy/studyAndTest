@@ -65,8 +65,7 @@ class MainWindows(QMainWindow):
 
     def run(self):
         self.BD = requestsSQL.create_connection('data.db')
-        requestsSQL.create_table_users(self.BD)
-        requestsSQL.create_table_tasks(self.BD)
+        requestsSQL.create_tables(self.BD)
         self.widgets()
         self.show()
 

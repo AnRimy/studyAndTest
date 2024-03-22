@@ -25,6 +25,30 @@ class AdminPanel(QMainWindow):
         self.widgets_user()
         self.widgets_task()
         self.left_panel()
+        
+        
+    def show_info(self):
+        for widget in self.main_frame.children():
+            if widget.isWidgetType():
+                widget.hide() 
+        self.left_panel_frame.show()
+        self.info_panel_frame.show()
+    
+        
+    def show_user(self):
+        for widget in self.main_frame.children():
+            if widget.isWidgetType():
+                widget.hide() 
+        self.left_panel_frame.show()
+        self.user_panel_frame.show()
+        
+        
+    def show_task(self):
+        for widget in self.main_frame.children():
+            if widget.isWidgetType():
+                widget.hide()    
+        self.left_panel_frame.show()
+        self.task_panel_frame.show()
           
         
     def left_panel(self):
@@ -62,7 +86,7 @@ class AdminPanel(QMainWindow):
         
     def widgets_info(self):
         self.info_panel_frame = QFrame(self.main_frame)
-        self.info_panel_frame.setGeometry(500, 0, 1420, 1080)
+        self.info_panel_frame.setGeometry(500, 0, self.screen.width()-500, 1080)
         self.info_panel_frame.setStyleSheet('background-color:rgb(75, 75, 75)')
         self.info_panel_frame.setVisible(True)
         
@@ -109,7 +133,7 @@ class AdminPanel(QMainWindow):
             self.table.insertRow(row_count)
 
         self.user_panel_frame = QFrame(self.main_frame)
-        self.user_panel_frame.setGeometry(500, 0, 1420, 1080)
+        self.user_panel_frame.setGeometry(500, 0, self.screen.width()-500, 1080)
         self.user_panel_frame.setStyleSheet('background-color: rgb((75, 75, 75);')
         
         user_panel_layout = QHBoxLayout(self.user_panel_frame)
@@ -158,10 +182,19 @@ class AdminPanel(QMainWindow):
         self.slide_index = 0
         self.slide = {}
         self.allSlides = []
-        
+        def clear_widgets():
+            self.titlestudy_textEdit.setText('')
+            self.photo_name_label.setText('')
+            self.desc_textEdit.setText('')
+                
         def addInBD():
             text = self.variantsForTask_textEdit.toPlainText()
             requestsSQL.add_task(self.BD, str(self.allSlides), str(text))
+            self.slide.clear()
+            self.allSlides.clear()
+            self.slide_index = 0
+            clear_widgets()
+            self.variantsForTask_textEdit.setText('')
         
         def choice_image(): 
             self.file_name, _ = QFileDialog.getOpenFileName(self, "Open Image", "", "Image files (*.jpg *.jpeg *.png *.bmp)")
@@ -190,9 +223,7 @@ class AdminPanel(QMainWindow):
             try:
                 show_slide(self.slide_index)
             except:
-                self.titlestudy_textEdit.setText('')
-                self.photo_name_label.setText('')
-                self.desc_textEdit.setText('')
+                clear_widgets()
         
         def add_slide():   
             self.slide['title'] = self.titlestudy_textEdit.toPlainText()
@@ -217,7 +248,7 @@ class AdminPanel(QMainWindow):
             self.allSlides.append(self.slide.copy())
             self.slide_index = len(self.allSlides) - 1  
         self.task_panel_frame = QFrame(self.main_frame)
-        self.task_panel_frame.setGeometry(500, 0, 1420, 1080)
+        self.task_panel_frame.setGeometry(500, 0, self.screen.width()-500, 1080)
         self.task_panel_frame.setStyleSheet('background-color: rgb(75, 75, 75);')
 
         task_panel_layout = QHBoxLayout(self.task_panel_frame)
@@ -311,30 +342,6 @@ class AdminPanel(QMainWindow):
         self.add_study_button.clicked.connect(add_slide)
         self.study_phono_button.clicked.connect(choice_image)
         self.addTexInDB.clicked.connect(addInBD)
-        
-        
-    def show_info(self):
-        for widget in self.main_frame.children():
-            if widget.isWidgetType():
-                widget.hide() 
-        self.left_panel_frame.show()
-        self.info_panel_frame.show()
-    
-        
-    def show_user(self):
-        for widget in self.main_frame.children():
-            if widget.isWidgetType():
-                widget.hide() 
-        self.left_panel_frame.show()
-        self.user_panel_frame.show()
-        
-        
-    def show_task(self):
-        for widget in self.main_frame.children():
-            if widget.isWidgetType():
-                widget.hide()    
-        self.left_panel_frame.show()
-        self.task_panel_frame.show()
         
         
     def close_program(self):

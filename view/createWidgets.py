@@ -1,16 +1,18 @@
 from PyQt5.QtCore import QSize, Qt
-from PyQt5.QtGui import QFont
+from PyQt5.QtGui import QFont, QIcon
 from PyQt5.QtWidgets import QWidget, QPushButton, QLabel, QTextEdit
 import sys
 
 class CreateWidgets(QWidget):        
-    def get_button(parent: QWidget, geometry: list, text: str, font: list, style: str, visible: bool = True):
+    def get_button(parent: QWidget, geometry: list, text: str, font: list, style: str, visible: bool = True, icon: str = None):
         button = QPushButton(parent)
         button.setGeometry(*geometry)
         button.setText(text)
         button.setFont(QFont(*font))
         button.setStyleSheet(style)
         button.setVisible(visible)
+        button.setIcon(QIcon(icon))
+        button.setIconSize(QSize(button.width() - 4, button.height() - 4))
         return button
     
     
