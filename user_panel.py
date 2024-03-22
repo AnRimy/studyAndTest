@@ -3,7 +3,8 @@ import ast
 import json
 from PyQt5.QtCore import QSize, Qt
 from PyQt5.QtGui import QFont, QPixmap
-from PyQt5.QtWidgets import (QMainWindow, QLabel, QDesktopWidget, QFrame, QPushButton, QTableWidget, QTableWidgetItem, QSizePolicy, QHBoxLayout, QFileDialog, QComboBox)
+from PyQt5.QtWidgets import (QMainWindow, QLabel, QDesktopWidget, QFrame, QPushButton, QTableWidget, QTableWidgetItem, QSizePolicy, QHBoxLayout, QFileDialog, QComboBox, QVBoxLayout)
+import random
 
 import requestsSQL
 from view.createWidgets import CreateWidgets
@@ -241,17 +242,62 @@ class UserPanel(QMainWindow):
             self.goToTest_button.clicked.connect(showTestFrame)
             self.exit_button.clicked.connect(show_firstChoiceTheme) 
             
-            
+
+
+
+
+
         def widgets_test():
+            def check_results():
+                combo_box_values = {}
+                for combo_box in self.combo_boxes:
+                    combo_box_value = combo_box.currentText()
+                    combo_box_values[combo_box_value] = combo_box.currentText()  
+                print(combo_box_values)
+
+                expected_positions = result
+                incorrect_values = []
+                l = list(result)
+                for key, value in expected_positions.items():
+                    print(combo_box_values.get(key), value)
+                    if combo_box_values.get(key) != l[value-1]:  
+                        incorrect_values.append(key)
+                if incorrect_values:
+                    print('False')
+                else:
+                    print('Okey')
+
             pairs = allTest[self.selected_index].split(', ')
             result = {}
             for pair in pairs:
                 key, value = pair.split(':')
                 result[key.strip()] = int(value)
-            print(result)
-            
 
-            
+            self.combo_boxes = []
+            y_position = 50
+            for key, value in result.items():
+                combo_box = QComboBox(self.test_frame)
+                combo_box.setGeometry(50, y_position, 100, 30)
+                combo_box.setVisible(True)
+                combo_box.setStyleSheet(f'background-color:rgb(231, 76, {y_position})')
+                random_data = list(result)
+                random.shuffle(random_data)
+                for option_key in random_data:
+                    combo_box.addItem(option_key)
+                combo_box.setCurrentIndex(-1)
+                self.combo_boxes.append(combo_box)
+                y_position += 40
+
+            self.check_result_button = CreateWidgets.get_button(self.test_frame,
+                                                                (self.screen.width()-250, self.screen.height() - 100, 100, 50),
+                                                                'Проверить',
+                                                                ("Arial", 12),
+                                                                'background-color:rgb(0, 250, 60);border-radius: 10px;')
+            self.check_result_button.clicked.connect(check_results)
+
+
+
+
             
                                 
             
