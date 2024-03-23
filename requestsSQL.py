@@ -67,11 +67,11 @@ def add_task(conn, study, task):
     conn.commit()
     return cur.lastrowid
 
-def insert_task_completion(conn, user_id, task_id, result):
-    sql_insert_task_completion = """INSERT INTO task_completions (user_id, task_id, result)
-                                    VALUES (?, ?, ?);"""
+def insert_task_completion(conn, user_id, task_id, completion_time, result):
+    sql_insert_task_completion = """INSERT INTO task_completions (user_id, task_id, completion_time, result)
+                                    VALUES (?, ?, ?, ?);"""
     cur = conn.cursor()
-    cur.execute(sql_insert_task_completion, (user_id, task_id, result))
+    cur.execute(sql_insert_task_completion, (user_id, task_id, completion_time, result))
     conn.commit()
     
 def check_task_completion(conn, user_id, task_id):
@@ -93,7 +93,6 @@ def update_task_completion(conn, user_id, task_id, completion_time, result):
   
 def update_task(conn, id, study, task):
     study_json = json.dumps(study)
-    print(id, study, task)
     
     sql = ''' UPDATE tasks
               SET study = ? ,

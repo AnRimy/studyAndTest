@@ -1,3 +1,4 @@
+import json
 from PyQt5.QtGui import QFont, QPixmap
 from PyQt5.QtWidgets import (QVBoxLayout, QHeaderView, QMainWindow, QLabel, QDesktopWidget, QFrame, QPushButton, QTableWidget, QTableWidgetItem, QSizePolicy, QHBoxLayout, QFileDialog)
 import ast
@@ -119,33 +120,36 @@ class AdminPanel(QMainWindow):
         self.len_users_label.setVisible(True)
     
 
+
     def widgets_user(self):
         def add_user_inBD():
-            selected_row = self.table.currentRow()
+            selected_row = self.user_table.currentRow()
             if selected_row >= 0:
-                login = self.table.item(selected_row, 1).text()  
-                password = self.table.item(selected_row, 2).text()
-                priv = self.table.item(selected_row, 3).text()
+                login = self.user_table.item(selected_row, 1).text()  
+                password = self.user_table.item(selected_row, 2).text()
+                priv = self.user_table.item(selected_row, 3).text()
                 requestsSQL.add_user(conn=self.BD, username=login, password=password, priv=priv)
                 refresh_table()
                 
         def del_user_inBD():
-            selected_row = self.table.currentRow() + 1
+            selected_row = self.user_table.currentRow() + 1
             if selected_row >= 0:
                 requestsSQL.delete_user(self.BD, selected_row)
                 refresh_table()
-
+                
         def refresh_table():
-            self.table.clearContents()
+            self.user_table.clearContents()
             users = requestsSQL.read_users(self.BD)
-            self.table.setRowCount(len(users))
+            self.user_table.setRowCount(len(users))
             for row in range(len(users)):
                 for col in range(len(users[0])):
-                    self.table.setItem(row, col, QTableWidgetItem(users[row][col]))
+                    self.user_table.setItem(row, col, QTableWidgetItem(users[row][col]))
+
+
         
         def add_row_to_table():
-            row_count = self.table.rowCount()
-            self.table.insertRow(row_count)
+            row_count = self.user_table.rowCount()
+            self.user_table.insertRow(row_count)
 
         self.user_panel_frame = QFrame(self.main_frame)
         self.user_panel_frame.setGeometry(500, 0, self.screen.width()-500, 1080)
@@ -180,17 +184,17 @@ class AdminPanel(QMainWindow):
         self.add_row_button.clicked.connect(add_row_to_table)
 
         users = requestsSQL.read_users(self.BD)
-        self.table = QTableWidget(self.user_frame)
-        self.table.setGeometry(15, 15, 1200, 700)
-        self.table.setStyleSheet('background-color:rgb(100, 255, 150); color: green;border-radius:10px')
-        self.table.setColumnCount(len(users[0]))
-        self.table.setRowCount(len(users))
-        self.table.setHorizontalHeaderLabels(['id', 'Логин', 'Пароль', 'Админ(1/0)'])
+        self.user_table = QTableWidget(self.user_frame)
+        self.user_table.setGeometry(15, 15, 1200, 700)
+        self.user_table.setStyleSheet('background-color:rgb(100, 255, 150); color: green;border-radius:10px')
+        self.user_table.setColumnCount(len(users[0]))
+        self.user_table.setRowCount(len(users))
+        self.user_table.setHorizontalHeaderLabels(['id', 'Логин', 'Пароль', 'Админ(1/0)'])
         for row in range(len(users)):
             for col in range(len(users[0])):
-                self.table.setItem(row, col, QTableWidgetItem(users[row][col]))
-        self.table.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        self.table.setVisible(True)
+                self.user_table.setItem(row, col, QTableWidgetItem(users[row][col]))
+        self.user_table.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.user_table.setVisible(True)
     
     
     def widgets_task(self):
@@ -204,12 +208,14 @@ class AdminPanel(QMainWindow):
                 
         def addInBD():
             text = self.variantsForTask_textEdit.toPlainText()
+            print(self.allSlides)
             requestsSQL.add_task(self.BD, self.allSlides, str(text))
             self.slide.clear()
             self.allSlides.clear()
             self.slide_index = 0
             clear_widgets()
             self.variantsForTask_textEdit.setText('')
+            self.updateWorkedTables()
         
         def choice_image(): 
             self.file_name, _ = QFileDialog.getOpenFileName(self, "Open Image", "", "Image files (*.jpg *.jpeg *.png *.bmp)")
@@ -359,10 +365,47 @@ class AdminPanel(QMainWindow):
         self.addTexInDB.clicked.connect(addInBD)
         
         
+    def updateWorkedTables(self):
+        self.editTask_table.clearContents()
 
+        self.allData = []
+        for data in requestsSQL.read_tasks(self.BD):
+            self.testDict_worked_tables = {}
+            for item in data[2].split(','):
+                key, value = item.split(':')
+                self.testDict_worked_tables[key.strip()] = int(value.strip())
+            finalDict = json.loads(data[1])
+            if isinstance(finalDict, dict):
+                finalDict['task'] = self.testDict_worked_tables
+            elif isinstance(finalDict, list):
+                finalDict[0]['task'] = self.testDict_worked_tables
+            self.allData.append(finalDict)
+
+        num_rows = len(self.allData)
+        self.editTask_table.setRowCount(num_rows)
+
+        for row, data in enumerate(self.allData):
+            if isinstance(data, dict):
+                self.editTask_table.setItem(row, 0, QTableWidgetItem(data.get('title', '')))
+                self.editTask_table.setItem(row, 1, QTableWidgetItem(data.get('photo', '')))
+                self.editTask_table.setItem(row, 2, QTableWidgetItem(data.get('desc', '')))
+                task_data = data.get('task', {})
+                task_text = ', '.join([f'{key}: {value}' for key, value in task_data.items()])
+                self.editTask_table.setItem(row, 3, QTableWidgetItem(task_text))
+            elif isinstance(data, list):
+                path = []
+                for col, item in enumerate(data):
+                    path.append(item.get('photo', '')) 
+                for col, item in enumerate(data):
+                    self.editTask_table.setItem(row, col * 4, QTableWidgetItem(item.get('title', '')))
+                    self.editTask_table.setItem(row, col * 4 + 1, QTableWidgetItem(', '.join(path)))
+                    self.editTask_table.setItem(row, col * 4 + 2, QTableWidgetItem(item.get('desc', '')))
+                    task_data = item.get('task', {})
+                    task_text = ', '.join([f'{key}: {value}' for key, value in task_data.items()])
+                    self.editTask_table.setItem(row, col * 4 + 3, QTableWidgetItem(task_text))
 
     def widgets_editTask(self):
-        allData = []
+        self.allData = []
         def edit_task(): 
             select_index = self.editTask_table.currentRow()
             if select_index != -1:
@@ -377,56 +420,16 @@ class AdminPanel(QMainWindow):
                 task = task_item.text() if task_item is not None else None
                 
                 study = {'title': title, 'photo': photo, 'desc': desc}
-                print(study, task)
                 
                 requestsSQL.update_task(self.BD, id=select_index+1, study=study, task=task)
-                update_tables()
+                self.updateWorkedTables()
 
         def delete_task():
             select_index = self.editTask_table.currentRow() + 1
             if select_index >= 0:
                 requestsSQL.delete_task_by_id(self.BD, select_index)
-                update_tables()
+                self.updateWorkedTables()
 
-        def update_tables():
-            self.editTask_table.clearContents()
-    
-            allData = []
-            for data in requestsSQL.read_tasks(self.BD):
-                testDict = {}
-                for item in data[2].split(','):
-                    key, value = item.split(':')
-                    testDict[key.strip()] = int(value.strip())
-                finalDict = ast.literal_eval(data[1].replace('[', '').replace(']', ''))
-                if isinstance(finalDict, dict):
-                    finalDict['task'] = testDict
-                elif isinstance(finalDict, tuple):
-                    finalDict[0]['task'] = testDict
-                allData.append(finalDict)
-
-            num_rows = len(allData)
-            self.editTask_table.setRowCount(num_rows)
-
-            for row, data in enumerate(allData):
-                if isinstance(data, dict):
-                    self.editTask_table.setItem(row, 0, QTableWidgetItem(data.get('title', '')))
-                    self.editTask_table.setItem(row, 1, QTableWidgetItem(data.get('photo', '')))
-                    self.editTask_table.setItem(row, 2, QTableWidgetItem(data.get('desc', '')))
-                    task_data = data.get('task', {})
-                    task_text = ', '.join([f'{key}: {value}' for key, value in task_data.items()])
-                    self.editTask_table.setItem(row, 3, QTableWidgetItem(task_text))
-                elif isinstance(data, tuple):
-                    path = []
-                    for col, item in enumerate(data):
-                        path.append(item.get('photo', '')) 
-                    for col, item in enumerate(data):
-                        self.editTask_table.setItem(row, col * 4, QTableWidgetItem(item.get('title', '')))
-                        self.editTask_table.setItem(row, col * 4 + 1, QTableWidgetItem(', '.join(path)))
-                        self.editTask_table.setItem(row, col * 4 + 2, QTableWidgetItem(item.get('desc', '')))
-                        task_data = item.get('task', {})
-                        task_text = ', '.join([f'{key}: {value}' for key, value in task_data.items()])
-                        self.editTask_table.setItem(row, col * 4 + 3, QTableWidgetItem(task_text))
-        
         
         self.editTask_panel_frame = QFrame(self.main_frame)
         self.editTask_panel_frame.setGeometry(500, 0, self.screen.width()-500, 1080)
@@ -439,16 +442,16 @@ class AdminPanel(QMainWindow):
         editTask_frame_layout = QHBoxLayout(self.editTask_frame)
 
         for data in requestsSQL.read_tasks(self.BD):
-            testDict = {}
+            self.testDict_worked_tables = {}
             for item in data[2].split(','):
                 key, value = item.split(':')
-                testDict[key.strip()] = int(value.strip())
-            finalDict = ast.literal_eval(data[1].replace('[', '').replace(']', ''))
+                self.testDict_worked_tables[key.strip()] = int(value.strip())
+            finalDict = json.loads(data[1])
             if isinstance(finalDict, dict):
-                finalDict['task'] = testDict
-            elif isinstance(finalDict, tuple):
-                finalDict[0]['task'] = testDict
-            allData.append(finalDict)
+                finalDict['task'] = self.testDict_worked_tables
+            elif isinstance(finalDict, list):
+                finalDict[0]['task'] = self.testDict_worked_tables
+            self.allData.append(finalDict)
 
         self.editTask_table = QTableWidget()
         self.editTask_table.setColumnCount(4)
@@ -456,10 +459,10 @@ class AdminPanel(QMainWindow):
         self.editTask_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         editTask_frame_layout.addWidget(self.editTask_table)
 
-        num_rows = len(allData)
+        num_rows = len(self.allData)
         self.editTask_table.setRowCount(num_rows)
 
-        for row, data in enumerate(allData):
+        for row, data in enumerate(self.allData):
             if isinstance(data, dict):
                 self.editTask_table.setItem(row, 0, QTableWidgetItem(data.get('title', '')))
                 self.editTask_table.setItem(row, 1, QTableWidgetItem(data.get('photo', '')))
@@ -467,7 +470,7 @@ class AdminPanel(QMainWindow):
                 task_data = data.get('task', {})
                 task_text = ', '.join([f'{key}: {value}' for key, value in task_data.items()])
                 self.editTask_table.setItem(row, 3, QTableWidgetItem(task_text))
-            elif isinstance(data, tuple):
+            elif isinstance(data, list):
                 path = []
                 for col, item in enumerate(data):
                     path.append(item.get('photo', '')) 

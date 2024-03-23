@@ -106,6 +106,7 @@ class UserPanel(QMainWindow):
                 if widget.isWidgetType():
                     widget.hide()    
             self.firstChoiceTheme_frame.show()
+            self.result_label.hide()
         
         def show_secondTrainingOrTestFrame():
             for widget in self.main_panel_frame.children():
@@ -273,9 +274,9 @@ class UserPanel(QMainWindow):
 
                 expected_positions = result
                 incorrect_values = []
-                l = list(result)
                 for key, value in expected_positions.items():
-                    if combo_box_values.get(key) != l[value - 1]:
+                    print(combo_box_values.get(key), key)
+                    if combo_box_values.get(key) != key:
                         incorrect_values.append(key)
 
                 if incorrect_values:
@@ -300,14 +301,14 @@ class UserPanel(QMainWindow):
                 combo_box.setGeometry(10, y_position, 700, 50)
                 combo_box.setFont(QFont("Arial", 12))
                 combo_box.setVisible(True)
-                combo_box.setStyleSheet(f'background-color:rgb(231, 76, {y_position})')
+                combo_box.setStyleSheet(f'background-color:rgb(231, 76, 120)')
                 random_data = list(result)
                 random.shuffle(random_data)
                 for option_key in random_data:
                     combo_box.addItem(option_key)
                 combo_box.setCurrentIndex(-1)
                 self.combo_boxes.append(combo_box)
-                y_position += 50
+                y_position += 55
 
             self.check_result_button = CreateWidgets.get_button(self.test_frame,
                                                                 (self.screen.width()-250, self.screen.height() - 100, 100, 50),
