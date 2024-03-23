@@ -1,6 +1,6 @@
 from PyQt5.QtGui import QFont, QPixmap
-from PyQt5.QtWidgets import (QMainWindow, QLabel, QDesktopWidget, QFrame, QPushButton, QTableWidget, QTableWidgetItem, QSizePolicy, QHBoxLayout, QFileDialog)
-import sys
+from PyQt5.QtWidgets import (QVBoxLayout, QHeaderView, QMainWindow, QLabel, QDesktopWidget, QFrame, QPushButton, QTableWidget, QTableWidgetItem, QSizePolicy, QHBoxLayout, QFileDialog)
+import ast
 
 import requestsSQL
 from view.createWidgets import CreateWidgets
@@ -21,9 +21,10 @@ class AdminPanel(QMainWindow):
         self.main_frame.setStyleSheet('background-color: rgb(51, 51, 51)')
         self.main_frame.setVisible(True)
         
-        self.widgets_info()
         self.widgets_user()
         self.widgets_task()
+        self.widgets_editTask()
+        self.widgets_info()
         self.left_panel()
         
         
@@ -49,6 +50,14 @@ class AdminPanel(QMainWindow):
                 widget.hide()    
         self.left_panel_frame.show()
         self.task_panel_frame.show()
+
+
+    def show_editTask(self):
+        for widget in self.main_frame.children():
+            if widget.isWidgetType():
+                widget.hide()    
+        self.left_panel_frame.show()
+        self.editTask_panel_frame.show()
           
         
     def left_panel(self):
@@ -72,6 +81,11 @@ class AdminPanel(QMainWindow):
                                                        'Задания',
                                                        ("Arial", 17),
                                                        'background-color: rgb(41, 128, 185); border-radius: 10px;')
+        self.editTask_button = CreateWidgets.get_button(self.left_panel_frame, 
+                                                       (10, 340, 480, 100), 
+                                                       'Работа с Заданиями',
+                                                       ("Arial", 17),
+                                                       'background-color: rgb(41, 128, 185); border-radius: 10px;')
         self.exit_button = CreateWidgets.get_button(self.left_panel_frame, 
                                                        (10, 970, 480, 100), 
                                                        'Выйти',
@@ -81,6 +95,7 @@ class AdminPanel(QMainWindow):
         self.mainInfo_button.clicked.connect(self.show_info)
         self.user_button.clicked.connect(self.show_user)
         self.task_button.clicked.connect(self.show_task)
+        self.editTask_button.clicked.connect(self.show_editTask)
         self.exit_button.clicked.connect(self.close_program)
         
         
@@ -189,7 +204,7 @@ class AdminPanel(QMainWindow):
                 
         def addInBD():
             text = self.variantsForTask_textEdit.toPlainText()
-            requestsSQL.add_task(self.BD, str(self.allSlides), str(text))
+            requestsSQL.add_task(self.BD, self.allSlides, str(text))
             self.slide.clear()
             self.allSlides.clear()
             self.slide_index = 0
@@ -342,6 +357,148 @@ class AdminPanel(QMainWindow):
         self.add_study_button.clicked.connect(add_slide)
         self.study_phono_button.clicked.connect(choice_image)
         self.addTexInDB.clicked.connect(addInBD)
+        
+        
+
+
+    def widgets_editTask(self):
+        allData = []
+        def edit_task(): 
+            select_index = self.editTask_table.currentRow()
+            if select_index != -1:
+                title_item = self.editTask_table.item(select_index, 0)
+                photo_item = self.editTask_table.item(select_index, 1)
+                desc_item = self.editTask_table.item(select_index, 2)
+                task_item = self.editTask_table.item(select_index, 3)
+                
+                title = title_item.text() if title_item is not None else None
+                photo = photo_item.text() if photo_item is not None else None
+                desc = desc_item.text() if desc_item is not None else None
+                task = task_item.text() if task_item is not None else None
+                
+                study = {'title': title, 'photo': photo, 'desc': desc}
+                print(study, task)
+                
+                requestsSQL.update_task(self.BD, id=select_index+1, study=study, task=task)
+                update_tables()
+
+        def delete_task():
+            select_index = self.editTask_table.currentRow() + 1
+            if select_index >= 0:
+                requestsSQL.delete_task_by_id(self.BD, select_index)
+                update_tables()
+
+        def update_tables():
+            self.editTask_table.clearContents()
+    
+            allData = []
+            for data in requestsSQL.read_tasks(self.BD):
+                testDict = {}
+                for item in data[2].split(','):
+                    key, value = item.split(':')
+                    testDict[key.strip()] = int(value.strip())
+                finalDict = ast.literal_eval(data[1].replace('[', '').replace(']', ''))
+                if isinstance(finalDict, dict):
+                    finalDict['task'] = testDict
+                elif isinstance(finalDict, tuple):
+                    finalDict[0]['task'] = testDict
+                allData.append(finalDict)
+
+            num_rows = len(allData)
+            self.editTask_table.setRowCount(num_rows)
+
+            for row, data in enumerate(allData):
+                if isinstance(data, dict):
+                    self.editTask_table.setItem(row, 0, QTableWidgetItem(data.get('title', '')))
+                    self.editTask_table.setItem(row, 1, QTableWidgetItem(data.get('photo', '')))
+                    self.editTask_table.setItem(row, 2, QTableWidgetItem(data.get('desc', '')))
+                    task_data = data.get('task', {})
+                    task_text = ', '.join([f'{key}: {value}' for key, value in task_data.items()])
+                    self.editTask_table.setItem(row, 3, QTableWidgetItem(task_text))
+                elif isinstance(data, tuple):
+                    path = []
+                    for col, item in enumerate(data):
+                        path.append(item.get('photo', '')) 
+                    for col, item in enumerate(data):
+                        self.editTask_table.setItem(row, col * 4, QTableWidgetItem(item.get('title', '')))
+                        self.editTask_table.setItem(row, col * 4 + 1, QTableWidgetItem(', '.join(path)))
+                        self.editTask_table.setItem(row, col * 4 + 2, QTableWidgetItem(item.get('desc', '')))
+                        task_data = item.get('task', {})
+                        task_text = ', '.join([f'{key}: {value}' for key, value in task_data.items()])
+                        self.editTask_table.setItem(row, col * 4 + 3, QTableWidgetItem(task_text))
+        
+        
+        self.editTask_panel_frame = QFrame(self.main_frame)
+        self.editTask_panel_frame.setGeometry(500, 0, self.screen.width()-500, 1080)
+        self.editTask_panel_frame.setStyleSheet('background-color: rgb(75, 75, 75);')
+
+        editTask_panel_layout = QHBoxLayout(self.editTask_panel_frame)
+
+        self.editTask_frame = QFrame()
+        self.editTask_frame.setStyleSheet('background-color: rgb(0, 200, 150); border-radius: 10px;')
+        editTask_frame_layout = QHBoxLayout(self.editTask_frame)
+
+        for data in requestsSQL.read_tasks(self.BD):
+            testDict = {}
+            for item in data[2].split(','):
+                key, value = item.split(':')
+                testDict[key.strip()] = int(value.strip())
+            finalDict = ast.literal_eval(data[1].replace('[', '').replace(']', ''))
+            if isinstance(finalDict, dict):
+                finalDict['task'] = testDict
+            elif isinstance(finalDict, tuple):
+                finalDict[0]['task'] = testDict
+            allData.append(finalDict)
+
+        self.editTask_table = QTableWidget()
+        self.editTask_table.setColumnCount(4)
+        self.editTask_table.setHorizontalHeaderLabels(["Название", "Фото", "Описание", "Тестовые Данные"])
+        self.editTask_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        editTask_frame_layout.addWidget(self.editTask_table)
+
+        num_rows = len(allData)
+        self.editTask_table.setRowCount(num_rows)
+
+        for row, data in enumerate(allData):
+            if isinstance(data, dict):
+                self.editTask_table.setItem(row, 0, QTableWidgetItem(data.get('title', '')))
+                self.editTask_table.setItem(row, 1, QTableWidgetItem(data.get('photo', '')))
+                self.editTask_table.setItem(row, 2, QTableWidgetItem(data.get('desc', '')))
+                task_data = data.get('task', {})
+                task_text = ', '.join([f'{key}: {value}' for key, value in task_data.items()])
+                self.editTask_table.setItem(row, 3, QTableWidgetItem(task_text))
+            elif isinstance(data, tuple):
+                path = []
+                for col, item in enumerate(data):
+                    path.append(item.get('photo', '')) 
+                for col, item in enumerate(data):
+                    self.editTask_table.setItem(row, col * 4, QTableWidgetItem(item.get('title', '')))
+                    self.editTask_table.setItem(row, col * 4 + 1, QTableWidgetItem(', '.join(path)))
+                    self.editTask_table.setItem(row, col * 4 + 2, QTableWidgetItem(item.get('desc', '')))
+                    task_data = item.get('task', {})
+                    task_text = ', '.join([f'{key}: {value}' for key, value in task_data.items()])
+                    self.editTask_table.setItem(row, col * 4 + 3, QTableWidgetItem(task_text))
+
+
+        editTask_panel_layout.addWidget(self.editTask_frame)
+        self.edit_button = CreateWidgets.get_button(self.editTask_frame,
+                                                    (10, self.screen.height()-150, 200, 100),
+                                                    'Редактировать',
+                                                    ('Arrial', 12),
+                                                    'background-color: rgb(100, 100, 150); border-radius: 10px;')
+        self.del_button = CreateWidgets.get_button(self.editTask_frame,
+                                                    (250, self.screen.height()-150, 200, 100),
+                                                    'Удалить',
+                                                    ('Arrial', 12),
+                                                    'background-color: rgb(100, 100, 150); border-radius: 10px;')
+        self.edit_button.clicked.connect(edit_task)
+        self.del_button.clicked.connect(delete_task)
+
+
+
+
+
+
         
         
     def close_program(self):

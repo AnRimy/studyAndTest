@@ -1,5 +1,6 @@
 from PyQt5.QtCore import QSize, Qt
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QLabel, QLineEdit, QPushButton, QDesktopWidget, QFrame)
+from PyQt5.QtGui import QFont
 import sys
 
 import requestsSQL
@@ -18,6 +19,12 @@ class MainWindows(QMainWindow):
         self.login_frame.setStyleSheet('background-color: #2c3e50')
 
         text_color = "#ffffff"
+
+        self.label_avtorization = QLabel('Авторизация', self.login_frame)
+        self.label_avtorization.setGeometry(self.width() // 2 - 100, self.height() // 2 -150, 200, 50)
+        self.label_avtorization.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        self.label_avtorization.setStyleSheet(f'color: {text_color};')
+        self.label_avtorization.setFont(QFont('Arrial', 14))        
 
         self.label_username = QLabel('Имя пользователя:', self.login_frame)
         self.label_username.setGeometry(self.width() // 2 - 250, self.height() // 2 - 70, 200, 50)
@@ -54,13 +61,13 @@ class MainWindows(QMainWindow):
         read_users = requestsSQL.read_users(self.BD)
         for id, login, password, priv in read_users:
             if login == self.input_username.text() and password == self.input_password.text():
-                self.loginInApp(login, int(priv))
+                self.loginInApp(id, login, int(priv))
             
         
-    def loginInApp(self, login, priv):
+    def loginInApp(self, id, login, priv):
         self.login_frame.setVisible(False)
         self.showFullScreen()
-        AdminPanel(self, login, self.BD) if priv else UserPanel(self, login, self.BD)
+        AdminPanel(self, login, self.BD) if priv else UserPanel(self, id, login, self.BD)
         
 
     def run(self):
