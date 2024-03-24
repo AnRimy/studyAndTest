@@ -33,14 +33,15 @@ def create_table_tasks(conn):
 
 def create_table_task_completions(conn):
     sql_create_task_completions_table = """CREATE TABLE IF NOT EXISTS task_completions (
-                                                id INTEGER PRIMARY KEY,
-                                                user_id INTEGER NOT NULL,
-                                                task_id INTEGER NOT NULL,
-                                                completion_time INTEGER,
-                                                result TEXT,
-                                                FOREIGN KEY (user_id) REFERENCES users (id),
-                                                FOREIGN KEY (task_id) REFERENCES tasks (id)
-                                            );"""
+                                            id INTEGER PRIMARY KEY,
+                                            user_id INTEGER NOT NULL,
+                                            task_id INTEGER NOT NULL,
+                                            completion_time INTEGER,
+                                            result TEXT,
+                                            dateOfCompletion DATETIME DEFAULT CURRENT_TIMESTAMP,
+                                            FOREIGN KEY (user_id) REFERENCES users (id),
+                                            FOREIGN KEY (task_id) REFERENCES tasks (id)
+                                        );"""
     execute_sql(conn, sql_create_task_completions_table)
 
 def execute_sql(conn, sql):
