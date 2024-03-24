@@ -1,8 +1,7 @@
-import ast
 import json
 from PyQt5.QtCore import QSize, Qt
 from PyQt5.QtGui import QFont, QPixmap
-from PyQt5.QtWidgets import (QMainWindow, QLabel, QDesktopWidget, QFrame, QPushButton, QTableWidget, QTableWidgetItem, QSizePolicy, QHBoxLayout, QFileDialog, QComboBox, QVBoxLayout)
+from PyQt5.QtWidgets import (QMainWindow, QLabel, QDesktopWidget, QFrame, QHBoxLayout, QComboBox, QMessageBox)
 import random
 import time
 
@@ -106,7 +105,6 @@ class UserPanel(QMainWindow):
                 if widget.isWidgetType():
                     widget.hide()    
             self.firstChoiceTheme_frame.show()
-            self.result_label.hide()
         
         def show_secondTrainingOrTestFrame():
             for widget in self.main_panel_frame.children():
@@ -184,7 +182,6 @@ class UserPanel(QMainWindow):
                 self.theme_label.setText(title)
                 self.numSlide.setText(num_slide)
                 p = QPixmap(photo)
-                print(photo)
                 scaled_pixmap = p.scaled(self.photo_label.size(), aspectRatioMode=Qt.KeepAspectRatio)
                 self.photo_label.setPixmap(scaled_pixmap)
 
@@ -251,8 +248,11 @@ class UserPanel(QMainWindow):
         def widgets_test():
             start_time = None
             def show_result(result, elapsed_time):
-                self.result_label.setText(f'Тест: {result}\nВремя: {elapsed_time} секунд')
-                self.result_label.setVisible(True)
+                msg = QMessageBox(self)
+                msg.setWindowTitle('Результаты теста')
+                proc_res_text = f'Результат: {self.correct_values}/{len(self.expected_positions)}'
+                msg.setText(f'Тест: {result}\n{proc_res_text}\nВремя: {elapsed_time} секунд')
+                msg.setIcon(QMessageBox.Information)
                 
                 user_id = int(self.user_id)
                 task_id = int(self.selected_index + 1)
@@ -262,6 +262,8 @@ class UserPanel(QMainWindow):
                     requestsSQL.update_task_completion(self.BD, user_id, task_id, elapsed_time, completion_result)
                 else:
                     requestsSQL.insert_task_completion(self.BD, user_id, task_id, elapsed_time, completion_result)
+                msg.show()
+                show_firstChoiceTheme()
             
             def check_results():
                 nonlocal start_time
@@ -272,14 +274,17 @@ class UserPanel(QMainWindow):
                     combo_box_value = combo_box.currentText()
                     combo_box_values[combo_box_value] = combo_box.currentText()
 
-                expected_positions = result
-                incorrect_values = []
-                for key, value in expected_positions.items():
-                    print(combo_box_values.get(key), key)
+                self.expected_positions = result
+                self.incorrect_values = []
+                self.correct_values = 0
+                for key, value in self.expected_positions.items():
                     if combo_box_values.get(key) != key:
-                        incorrect_values.append(key)
+                        self.incorrect_values.append(key)
+                    else:
+                        self.correct_values+=1
+                        
 
-                if incorrect_values:
+                if self.incorrect_values:
                     show_result('Не сдан', elapsed_time)
                 else:
                     show_result('Сдан', elapsed_time)
@@ -315,12 +320,6 @@ class UserPanel(QMainWindow):
                                                                 'Проверить',
                                                                 ("Arial", 12),
                                                                 'background-color:rgb(0, 250, 60);border-radius: 10px;')
-            self.result_label = CreateWidgets.get_label(self.test_frame,
-                                                                (self.screen.width()-410, 10, 250, 100),
-                                                                f'',
-                                                                ("Arial", 14),
-                                                                'background-color: rgb(255, 255, 255);border-radius: 10px;',
-                                                                False)
             self.exitFromTest_button = CreateWidgets.get_button(self.test_frame,
                                                                 (self.screen.width()-400, self.screen.height() - 100, 100, 50),
                                                                 'Выйти',

@@ -202,13 +202,13 @@ class AdminPanel(QMainWindow):
         self.slide = {}
         self.allSlides = []
         def clear_widgets():
-            self.titlestudy_textEdit.setText('')
+            # self.titlestudy_textEdit.setText('')
             self.photo_name_label.setText('')
             self.desc_textEdit.setText('')
                 
         def addInBD():
             text = self.variantsForTask_textEdit.toPlainText()
-            print(self.allSlides)
+            # print(self.allSlides)
             requestsSQL.add_task(self.BD, self.allSlides, str(text))
             self.slide.clear()
             self.allSlides.clear()
@@ -224,7 +224,7 @@ class AdminPanel(QMainWindow):
                 
         def show_slide(index):
             if 0 <= index < len(self.slide):
-                self.slide_index_label.setText(str(self.slide_index + 1))
+                self.slide_index_label.setText(str(self.slide_index))
                 slide = self.allSlides[index]
                 self.slide_index_label.setText(str(index))
                 self.titlestudy_textEdit.setText(slide['title'])
@@ -302,7 +302,7 @@ class AdminPanel(QMainWindow):
 
         self.slide_index_label = CreateWidgets.get_label(self.study_frame,
                                                 (650, 10, 50, 50),
-                                                '1',
+                                                '0',
                                                 ("Arial", 14),
                                                 'border-radius: 10px;')
 
@@ -324,7 +324,7 @@ class AdminPanel(QMainWindow):
                                                 'background-color: rgb(125, 125, 255); border-radius: 10px; color: white;')
 
         self.photo_name_label = CreateWidgets.get_label(self.study_frame,
-                                                (250, 150, 100, 50),
+                                                (250, 150, 200, 50),
                                                 '',
                                                 ("Arial", 14),
                                                 '')
@@ -463,6 +463,7 @@ class AdminPanel(QMainWindow):
         self.editTask_table.setRowCount(num_rows)
 
         for row, data in enumerate(self.allData):
+            # print(data)
             if isinstance(data, dict):
                 self.editTask_table.setItem(row, 0, QTableWidgetItem(data.get('title', '')))
                 self.editTask_table.setItem(row, 1, QTableWidgetItem(data.get('photo', '')))
@@ -471,13 +472,17 @@ class AdminPanel(QMainWindow):
                 task_text = ', '.join([f'{key}: {value}' for key, value in task_data.items()])
                 self.editTask_table.setItem(row, 3, QTableWidgetItem(task_text))
             elif isinstance(data, list):
+                title = []
                 path = []
+                descs = []
                 for col, item in enumerate(data):
-                    path.append(item.get('photo', '')) 
+                    title.append(item.get('title', ''))
+                    path.append(item.get('photo', ''))
+                    descs.append(item.get('desc', '')) 
                 for col, item in enumerate(data):
-                    self.editTask_table.setItem(row, col * 4, QTableWidgetItem(item.get('title', '')))
+                    self.editTask_table.setItem(row, col * 4, QTableWidgetItem(', '.join(title)))
                     self.editTask_table.setItem(row, col * 4 + 1, QTableWidgetItem(', '.join(path)))
-                    self.editTask_table.setItem(row, col * 4 + 2, QTableWidgetItem(item.get('desc', '')))
+                    self.editTask_table.setItem(row, col * 4 + 2, QTableWidgetItem(', '.join(descs)))
                     task_data = item.get('task', {})
                     task_text = ', '.join([f'{key}: {value}' for key, value in task_data.items()])
                     self.editTask_table.setItem(row, col * 4 + 3, QTableWidgetItem(task_text))
