@@ -393,15 +393,13 @@ class AdminPanel(QMainWindow):
                 task_text = ', '.join([f'{key}: {value}' for key, value in task_data.items()])
                 self.editTask_table.setItem(row, 3, QTableWidgetItem(task_text))
             elif isinstance(data, list):
-                title = []
                 path = []
                 descs = []
                 for col, item in enumerate(data):
-                    title.append(item.get('title', ''))
                     path.append(item.get('photo', ''))
                     descs.append(item.get('desc', '')) 
                 for col, item in enumerate(data):
-                    self.editTask_table.setItem(row, col * 4, QTableWidgetItem(', '.join(title)))
+                    self.editTask_table.setItem(row, col * 4, QTableWidgetItem(item.get('title', '')))
                     self.editTask_table.setItem(row, col * 4 + 1, QTableWidgetItem(', '.join(path)))
                     self.editTask_table.setItem(row, col * 4 + 2, QTableWidgetItem(', '.join(descs)))
                     task_data = item.get('task', {})
@@ -475,15 +473,13 @@ class AdminPanel(QMainWindow):
                 task_text = ', '.join([f'{key}: {value}' for key, value in task_data.items()])
                 self.editTask_table.setItem(row, 3, QTableWidgetItem(task_text))
             elif isinstance(data, list):
-                title = []
                 path = []
                 descs = []
                 for col, item in enumerate(data):
-                    title.append(item.get('title', ''))
                     path.append(item.get('photo', ''))
                     descs.append(item.get('desc', '')) 
                 for col, item in enumerate(data):
-                    self.editTask_table.setItem(row, col * 4, QTableWidgetItem(', '.join(title)))
+                    self.editTask_table.setItem(row, col * 4, QTableWidgetItem(item.get('title', '')))
                     self.editTask_table.setItem(row, col * 4 + 1, QTableWidgetItem(', '.join(path)))
                     self.editTask_table.setItem(row, col * 4 + 2, QTableWidgetItem(', '.join(descs)))
                     task_data = item.get('task', {})
@@ -507,7 +503,7 @@ class AdminPanel(QMainWindow):
 
 
 
-
+                    
 
 
         
