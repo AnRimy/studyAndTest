@@ -95,8 +95,6 @@ class UserPanel(QMainWindow):
         self.len_users_label.setFont(QFont("Arial", 17))
         self.len_users_label.setStyleSheet('background-color:rgb(0, 200, 150)')
         self.len_users_label.setVisible(True)
-        
-
         self.update_progres_tables()
         
         
@@ -121,7 +119,6 @@ class UserPanel(QMainWindow):
                 except:
                     pass
                 
-        
         for i, row in enumerate(self.completed_tasks_info):
             for j, val in enumerate(row):
                 if j == 0:
@@ -132,7 +129,6 @@ class UserPanel(QMainWindow):
         self.info_table.resizeColumnsToContents()
         self.info_table.resizeRowsToContents()
 
-        
         
     def widgets_task(self):
         alltraining = []
@@ -164,7 +160,6 @@ class UserPanel(QMainWindow):
             self.test_frame.show()
             widgets_test()
         
-        
         def widgets_second():
             self.selected_theme = self.theme_combo.currentText()
             self.selected_index = int(self.theme_combo.currentIndex())
@@ -192,8 +187,7 @@ class UserPanel(QMainWindow):
             self.traininng_button.clicked.connect(showTrainingFrame)
             self.test_button.clicked.connect(showTestFrame)
             self.back_button.clicked.connect(show_firstChoiceTheme)
-            
-            
+                
         def widgets_training():
             self.slide_index = 0
             def back_slide():
@@ -221,16 +215,12 @@ class UserPanel(QMainWindow):
                 p = QPixmap(photo)
                 scaled_pixmap = p.scaled(self.photo_label.size(), aspectRatioMode=Qt.KeepAspectRatio)
                 self.photo_label.setPixmap(scaled_pixmap)
-
-                self.desc_label.setText(desc)
-                
-            
+                self.desc_label.setText(desc)   
             self.numSlide = CreateWidgets.get_label(self.training_frame,
                                                     (self.screen.width()-175, self.screen.height()-80, 50, 50),
                                                     '0',
                                                     ("Arial", 14),
                                                     'background-color: rgb(255, 255, 255);border-radius: 10px;')
-            
             self.theme_label = CreateWidgets.get_label(self.training_frame,
                                                     (10, 10, 800, 50),
                                                     self.selected_theme,
@@ -242,8 +232,6 @@ class UserPanel(QMainWindow):
                                                     '',
                                                     ("Arial", 14),
                                                     'background-color: rgb(255, 255, 255);border-radius: 10px;')
-            
-            
             self.desc_label = CreateWidgets.get_label(self.training_frame,
                                                     (10, 100, 800, 500),
                                                     '',
@@ -261,13 +249,11 @@ class UserPanel(QMainWindow):
                                                     'Вперед',
                                                     ("Arial", 12),
                                                     'background-color: rgb(255, 255, 255);border-radius: 10px;')
-
             self.goToTest_button = CreateWidgets.get_button(self.training_frame,
                                                      (self.screen.width()-300, self.screen.height()-80, 100, 50),
                                                     'Тест',
                                                     ("Arial", 12),
                                                     'background-color:#27ae60;border-radius: 10px;')
-
             self.exit_button = CreateWidgets.get_button(self.training_frame,
                                                      (10, self.screen.height()-80, 100, 50),
                                                     'Выйти',
@@ -278,9 +264,6 @@ class UserPanel(QMainWindow):
             self.prev_slide_button.clicked.connect(prev_slide) 
             self.goToTest_button.clicked.connect(showTestFrame)
             self.exit_button.clicked.connect(show_firstChoiceTheme) 
-            
-
-
 
         def widgets_test():
             start_time = None
@@ -412,7 +395,6 @@ class UserPanel(QMainWindow):
         self.choice_button.clicked.connect(show_secondTrainingOrTestFrame)
         
  
-        
     def close_program(self):
         exit()
 
