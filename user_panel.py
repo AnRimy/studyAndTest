@@ -96,59 +96,42 @@ class UserPanel(QMainWindow):
         self.len_users_label.setStyleSheet('background-color:rgb(0, 200, 150)')
         self.len_users_label.setVisible(True)
         
-        completed_tasks_info = requestsSQL.get_task_completion_info_for_user(self.BD, self.user_id)
+
+        self.update_progres_tables()
+        
+        
+    def update_progres_tables(self):
+        self.completed_tasks_info = requestsSQL.get_task_completion_info_for_user(self.BD, self.user_id)
         self.info_table = QTableWidget(self.info_frame)
         self.info_table.setGeometry(350, 10, 1000, 1000)
-        self.info_table.setRowCount(len(completed_tasks_info))
-        self.info_table.setColumnCount(len(completed_tasks_info[0]))
+        self.info_table.setRowCount(len(self.completed_tasks_info))
+        try:
+            self.info_table.setColumnCount(len(self.completed_tasks_info[0]))
+        except:
+            pass
         self.info_table.setHorizontalHeaderLabels(['Тема', 'Результат', 'Время(сек)', 'Дата'])
         
-        titles = []
-        for i, row in enumerate(completed_tasks_info):
+        self.titles = []
+        for i, row in enumerate(self.completed_tasks_info):
             for j, val in enumerate(row):
                 try:
                     d = json.loads(val)
                     if d and isinstance(d, list):
-                        titles.append(d[0]['title'])
+                        self.titles.append(d[0]['title'])
                 except:
                     pass
                 
-        print(titles)
         
-        for i, row in enumerate(completed_tasks_info):
+        for i, row in enumerate(self.completed_tasks_info):
             for j, val in enumerate(row):
                 if j == 0:
-                    self.info_table.setItem(i, j, QTableWidgetItem(str(titles[i])))
-                else:
-                    self.info_table.setItem(i, j, QTableWidgetItem(str(val)))
+                    val = self.titles[i]
+                if j == 1:
+                    val = 'Сдан' if int(val) == 1 else 'Не сдан'
+                self.info_table.setItem(i, j, QTableWidgetItem(str(val)))
         self.info_table.resizeColumnsToContents()
         self.info_table.resizeRowsToContents()
-        
-        # data = requestsSQL.fetch_task_completions_with_names(self.BD)
-        # self.info_table = QTableWidget(self.info_frame)
-        # self.info_table.setGeometry(350, 10, 1000, 1000)
-        # self.info_table.setRowCount(len(data))
-        # self.info_table.setColumnCount(len(data[0]))
-        # self.info_table.setHorizontalHeaderLabels(['id', 'Логин', 'Тема', 'Время(сек)', 'Результат', 'Дата'])
-        
-        # titles = []
-        # for i, row in enumerate(data):
-        #     for j, val in enumerate(row):
-        #         try:
-        #             d = json.loads(val)
-        #             if d and isinstance(d, list):
-        #                 titles.append(d[0]['title'])
-        #         except:
-        #             pass
-        
-        # for i, row in enumerate(data):
-        #     for j, val in enumerate(row):
-        #         if j == 2:
-        #             self.info_table.setItem(i, j, QTableWidgetItem(str(titles[i])))
-        #         else:
-        #             self.info_table.setItem(i, j, QTableWidgetItem(str(val)))
-        # self.info_table.resizeColumnsToContents()
-        # self.info_table.resizeRowsToContents()
+
         
         
     def widgets_task(self):
@@ -318,30 +301,29 @@ class UserPanel(QMainWindow):
                     requestsSQL.insert_task_completion(self.BD, user_id, task_id, elapsed_time, completion_result)
                 msg.show()
                 show_firstChoiceTheme()
+                self.update_progres_tables()
+                
             
             def check_results():
                 nonlocal start_time
                 end_time = time.time()
                 elapsed_time = int(end_time - start_time)
-                combo_box_values = {}
+                combo_box_values = []
                 for combo_box in self.combo_boxes:
-                    combo_box_value = combo_box.currentText()
-                    combo_box_values[combo_box_value] = combo_box.currentText()
+                    combo_box_values.append(combo_box.currentText())
 
                 self.expected_positions = result
-                self.incorrect_values = []
+                self.incorrect_values1 = [self.expected_positions]
                 self.correct_values = 0
-                for key, value in self.expected_positions.items():
-                    if combo_box_values.get(key) != key:
-                        self.incorrect_values.append(key)
-                    else:
+                for key, value in enumerate(self.expected_positions):
+                    if combo_box_values[key] == value:
                         self.correct_values+=1
-                        
 
-                if self.incorrect_values:
-                    show_result('Не сдан', elapsed_time)
+                if self.correct_values==len(self.expected_positions):
+                    show_result('Сдан', elapsed_time)  
                 else:
-                    show_result('Сдан', elapsed_time)
+                    show_result('Не сдан', elapsed_time)
+                    
 
             def start_timer():
                 nonlocal start_time

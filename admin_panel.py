@@ -128,7 +128,10 @@ class AdminPanel(QMainWindow):
         self.info_table = QTableWidget(self.info_frame)
         self.info_table.setGeometry(350, 10, 1000, 1000)
         self.info_table.setRowCount(len(data))
-        self.info_table.setColumnCount(len(data[0]))
+        try:
+            self.info_table.setColumnCount(len(data[0]))
+        except:
+            pass
         self.info_table.setHorizontalHeaderLabels(['id', 'Логин', 'Тема', 'Время(сек)', 'Результат', 'Дата'])
         
         titles = []
@@ -144,9 +147,10 @@ class AdminPanel(QMainWindow):
         for i, row in enumerate(data):
             for j, val in enumerate(row):
                 if j == 2:
-                    self.info_table.setItem(i, j, QTableWidgetItem(str(titles[i])))
-                else:
-                    self.info_table.setItem(i, j, QTableWidgetItem(str(val)))
+                    val = titles[i]
+                if j == 4:
+                    val = 'Сдан' if int(val) == 1 else 'Не сдан'
+                self.info_table.setItem(i, j, QTableWidgetItem(str(val)))
         self.info_table.resizeColumnsToContents()
         self.info_table.resizeRowsToContents()
     
