@@ -113,11 +113,42 @@ class AdminPanel(QMainWindow):
         info_panel_layout.addWidget(self.info_frame)
         
         self.len_users_label = QLabel(self.info_frame)
-        self.len_users_label.setGeometry(10, 10, 700, 100)
+        self.len_users_label.setGeometry(10, 10, 300, 100)
         self.len_users_label.setText(f'Вход: {self.user_name}\nПользователей: {requestsSQL.len_users(self.BD)}\nЗаданий: {requestsSQL.len_tasks(self.BD)}')
         self.len_users_label.setFont(QFont("Arial", 17))
-        self.len_users_label.setStyleSheet('background-color:rgb(0, 200, 150)')
+        self.len_users_label.setStyleSheet('background-color:rgb(200, 0, 150)')
         self.len_users_label.setVisible(True)
+
+        
+        self.info_frame_layout = QVBoxLayout(self.info_frame)
+        
+        
+
+        data = requestsSQL.fetch_task_completions_with_names(self.BD)
+        self.info_table = QTableWidget(self.info_frame)
+        self.info_table.setGeometry(350, 10, 1000, 1000)
+        self.info_table.setRowCount(len(data))
+        self.info_table.setColumnCount(len(data[0]))
+        self.info_table.setHorizontalHeaderLabels(['id', 'Логин', 'Тема', 'Время(сек)', 'Результат', 'Дата'])
+        
+        titles = []
+        for i, row in enumerate(data):
+            for j, val in enumerate(row):
+                try:
+                    d = json.loads(val)
+                    if d and isinstance(d, list):
+                        titles.append(d[0]['title'])
+                except:
+                    pass
+        
+        for i, row in enumerate(data):
+            for j, val in enumerate(row):
+                if j == 2:
+                    self.info_table.setItem(i, j, QTableWidgetItem(str(titles[i])))
+                else:
+                    self.info_table.setItem(i, j, QTableWidgetItem(str(val)))
+        self.info_table.resizeColumnsToContents()
+        self.info_table.resizeRowsToContents()
     
 
 
@@ -501,12 +532,5 @@ class AdminPanel(QMainWindow):
         self.edit_button.clicked.connect(edit_task)
         self.del_button.clicked.connect(delete_task)
 
-
-
-                    
-
-
-        
-        
     def close_program(self):
         exit()

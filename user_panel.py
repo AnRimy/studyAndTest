@@ -1,7 +1,7 @@
 import json
 from PyQt5.QtCore import QSize, Qt
 from PyQt5.QtGui import QFont, QPixmap
-from PyQt5.QtWidgets import (QMainWindow, QLabel, QDesktopWidget, QFrame, QHBoxLayout, QComboBox, QMessageBox)
+from PyQt5.QtWidgets import (QTableWidgetItem, QTableWidget, QMainWindow, QLabel, QDesktopWidget, QFrame, QHBoxLayout, QComboBox, QMessageBox)
 import random
 import time
 
@@ -90,11 +90,65 @@ class UserPanel(QMainWindow):
         info_panel_layout.addWidget(self.info_frame)
         
         self.len_users_label = QLabel(self.info_frame)
-        self.len_users_label.setGeometry(10, 10, 700, 100)
+        self.len_users_label.setGeometry(10, 10, 300, 100)
         self.len_users_label.setText(f'Вход: {self.user_name}')
         self.len_users_label.setFont(QFont("Arial", 17))
         self.len_users_label.setStyleSheet('background-color:rgb(0, 200, 150)')
         self.len_users_label.setVisible(True)
+        
+        completed_tasks_info = requestsSQL.get_task_completion_info_for_user(self.BD, self.user_id)
+        self.info_table = QTableWidget(self.info_frame)
+        self.info_table.setGeometry(350, 10, 1000, 1000)
+        self.info_table.setRowCount(len(completed_tasks_info))
+        self.info_table.setColumnCount(len(completed_tasks_info[0]))
+        self.info_table.setHorizontalHeaderLabels(['Тема', 'Результат', 'Время(сек)', 'Дата'])
+        
+        titles = []
+        for i, row in enumerate(completed_tasks_info):
+            for j, val in enumerate(row):
+                try:
+                    d = json.loads(val)
+                    if d and isinstance(d, list):
+                        titles.append(d[0]['title'])
+                except:
+                    pass
+                
+        print(titles)
+        
+        for i, row in enumerate(completed_tasks_info):
+            for j, val in enumerate(row):
+                if j == 0:
+                    self.info_table.setItem(i, j, QTableWidgetItem(str(titles[i])))
+                else:
+                    self.info_table.setItem(i, j, QTableWidgetItem(str(val)))
+        self.info_table.resizeColumnsToContents()
+        self.info_table.resizeRowsToContents()
+        
+        # data = requestsSQL.fetch_task_completions_with_names(self.BD)
+        # self.info_table = QTableWidget(self.info_frame)
+        # self.info_table.setGeometry(350, 10, 1000, 1000)
+        # self.info_table.setRowCount(len(data))
+        # self.info_table.setColumnCount(len(data[0]))
+        # self.info_table.setHorizontalHeaderLabels(['id', 'Логин', 'Тема', 'Время(сек)', 'Результат', 'Дата'])
+        
+        # titles = []
+        # for i, row in enumerate(data):
+        #     for j, val in enumerate(row):
+        #         try:
+        #             d = json.loads(val)
+        #             if d and isinstance(d, list):
+        #                 titles.append(d[0]['title'])
+        #         except:
+        #             pass
+        
+        # for i, row in enumerate(data):
+        #     for j, val in enumerate(row):
+        #         if j == 2:
+        #             self.info_table.setItem(i, j, QTableWidgetItem(str(titles[i])))
+        #         else:
+        #             self.info_table.setItem(i, j, QTableWidgetItem(str(val)))
+        # self.info_table.resizeColumnsToContents()
+        # self.info_table.resizeRowsToContents()
         
         
     def widgets_task(self):

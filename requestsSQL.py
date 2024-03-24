@@ -43,6 +43,15 @@ def create_table_task_completions(conn):
                                             FOREIGN KEY (task_id) REFERENCES tasks (id)
                                         );"""
     execute_sql(conn, sql_create_task_completions_table)
+    
+def get_task_completion_info_for_user(conn, user_id):
+    cursor = conn.cursor()
+    cursor.execute("""SELECT tasks.study, task_completions.result, task_completions.completion_time, task_completions.dateOfCompletion
+                      FROM task_completions
+                      JOIN tasks ON task_completions.task_id = tasks.id
+                      WHERE task_completions.user_id = ?""", (user_id,))
+    rows = cursor.fetchall()
+    return rows
 
 def execute_sql(conn, sql):
     try:
@@ -113,6 +122,26 @@ def read_users(conn):
 def read_tasks(conn):
     cur = conn.cursor()
     cur.execute("SELECT * FROM tasks")
+    rows = cur.fetchall()
+    return rows
+
+def fetch_task_completions_with_names(conn):
+    cur = conn.cursor()
+    cur.execute("""
+        SELECT 
+            task_completions.id AS completion_id,
+            users.username AS user_name,
+            tasks.study AS task_name,
+            task_completions.completion_time,
+            task_completions.result,
+            task_completions.dateOfCompletion
+        FROM 
+            task_completions
+        JOIN 
+            users ON task_completions.user_id = users.id
+        JOIN 
+            tasks ON task_completions.task_id = tasks.id
+    """)
     rows = cur.fetchall()
     return rows
 
