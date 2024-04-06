@@ -58,8 +58,7 @@ class AdminPanel(QMainWindow):
                 widget.hide()    
         self.left_panel_frame.show()
         self.editTask_panel_frame.show()
-          
-        
+
     def left_panel(self):
         self.left_panel_frame = QFrame(self.main_frame)
         self.left_panel_frame.setGeometry(0, 0, 500, self.screen.height())
@@ -146,7 +145,7 @@ class AdminPanel(QMainWindow):
                 self.info_table.setItem(i, j, QTableWidgetItem(str(val)))
         self.info_table.resizeColumnsToContents()
         self.info_table.resizeRowsToContents()
-    
+
 
     def widgets_user(self):
         def add_user_inBD():
@@ -243,7 +242,7 @@ class AdminPanel(QMainWindow):
                 self.photo_name_label.setText(str(self.file_name.split('/')[-1]))
                 
         def show_slide(index):
-            if 0 <= index < len(self.slide):
+            if 0 <= index < len(self.allSlides):
                 self.slide_index_label.setText(str(self.slide_index))
                 slide = self.allSlides[index]
                 self.slide_index_label.setText(str(index))
@@ -254,17 +253,18 @@ class AdminPanel(QMainWindow):
         def show_back_slide():            
             self.slide_index -= 1
             if self.slide_index < 0:
-                self.slide_index = len(self.slide) - 1
+                self.slide_index = len(self.allSlides) - 1
             show_slide(self.slide_index)
 
         def show_next_slide():            
             self.slide_index += 1
-            if self.slide_index >= len(self.slide):
+            if self.slide_index > len(self.allSlides):
                 self.slide_index = 0
-            try:
-                show_slide(self.slide_index)
-            except:
+            if len(self.allSlides) <= self.slide_index:
                 clear_widgets()
+            else:
+                show_slide(self.slide_index)
+
         
         def add_slide():   
             self.slide['title'] = self.titlestudy_textEdit.toPlainText()
@@ -287,7 +287,9 @@ class AdminPanel(QMainWindow):
                     self.slide_index = i
                     return  
             self.allSlides.append(self.slide.copy())
-            self.slide_index = len(self.allSlides) - 1  
+            self.slide_index = len(self.allSlides) - 1 
+
+
         self.task_panel_frame = QFrame(self.main_frame)
         self.task_panel_frame.setGeometry(500, 0, self.screen.width()-500, 1080)
         self.task_panel_frame.setStyleSheet('background-color: rgb(75, 75, 75);')
