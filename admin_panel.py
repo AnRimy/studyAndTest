@@ -242,8 +242,8 @@ class AdminPanel(QMainWindow):
                 self.photo_name_label.setText(str(self.file_name.split('/')[-1]))
                 
         def show_slide(index):
+            self.slide_index_label.setText(str(self.slide_index))
             if 0 <= index < len(self.allSlides):
-                self.slide_index_label.setText(str(self.slide_index))
                 slide = self.allSlides[index]
                 self.slide_index_label.setText(str(index))
                 self.titlestudy_textEdit.setText(slide['title'])
